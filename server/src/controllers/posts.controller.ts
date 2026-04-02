@@ -8,16 +8,26 @@ import { AuthRequest } from "../middleware/auth";
 
 export const getFeed = async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+  const skip = (page - 1) * limit;
 
-  const posts = await Post.find({
+  const filter = {
     $or: [
       { visibility: "public" },
       { visibility: "private", userId: new Types.ObjectId(userId) },
     ],
-  })
-    .sort({ createdAt: -1 })
-    .populate("userId", "firstName lastName")
-    .lean();
+  };
+
+  const [posts, total] = await Promise.all([
+    Post.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("userId", "firstName lastName")
+      .lean(),
+    Post.countDocuments(filter),
+  ]);
 
   // Get user's reactions for all posts
   const postIds = posts.map((p: any) => p._id);
@@ -37,7 +47,16 @@ export const getFeed = async (req: AuthRequest, res: Response): Promise<void> =>
     userReaction: reactionMap.get(post._id.toString()) || null,
   }));
 
-  res.json(postsWithReactions);
+  res.json({
+    posts: postsWithReactions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: page < Math.ceil(total / limit),
+    },
+  });
 };
 
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
