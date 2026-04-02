@@ -16,9 +16,28 @@ export const getFeed = async (req: AuthRequest, res: Response): Promise<void> =>
     ],
   })
     .sort({ createdAt: -1 })
-    .populate("userId", "firstName lastName");
+    .populate("userId", "firstName lastName")
+    .lean();
 
-  res.json(posts);
+  // Get user's reactions for all posts
+  const postIds = posts.map((p: any) => p._id);
+  const userReactions = await Like.find({
+    userId: new Types.ObjectId(userId),
+    postId: { $in: postIds },
+  }).lean();
+
+  // Create a map of postId -> reactionType
+  const reactionMap = new Map(
+    userReactions.map((r: any) => [r.postId.toString(), r.reactionType])
+  );
+
+  // Add userReaction to each post
+  const postsWithReactions = posts.map((post: any) => ({
+    ...post,
+    userReaction: reactionMap.get(post._id.toString()) || null,
+  }));
+
+  res.json(postsWithReactions);
 };
 
 export const createPost = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -39,7 +58,14 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
   });
 
   await post.populate("userId", "firstName lastName");
-  res.status(201).json(post);
+
+  // Add userReaction field (null for newly created post)
+  const postWithReaction = {
+    ...post.toObject(),
+    userReaction: null,
+  };
+
+  res.status(201).json(postWithReaction);
 };
 
 export const updatePost = async (req: AuthRequest, res: Response): Promise<void> => {
