@@ -1,17 +1,25 @@
 import { Router } from "express";
 import { body } from "express-validator";
 import multer from "multer";
-import path from "path";
 import { verifyJWT } from "../middleware/auth";
 import { getFeed, createPost, updatePost, deletePost } from "../controllers/posts.controller";
 
 const router = Router();
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, path.join(__dirname, "../../uploads")),
-  filename: (_req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+// Use memory storage for Cloudinary upload
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (_req, file, cb) => {
+    // Accept images only
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 router.get("/", verifyJWT, getFeed);
 
