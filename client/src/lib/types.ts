@@ -4,6 +4,14 @@ export interface ApiUser {
   lastName: string;
 }
 
+export type ReactionType = "like" | "love" | "haha" | "wow" | "sad" | "angry";
+
+export interface ReactionSummary {
+  type: ReactionType;
+  count: number;
+  users: ApiUser[];
+}
+
 export interface ApiPost {
   _id: string;
   userId: ApiUser;
@@ -13,6 +21,7 @@ export interface ApiPost {
   likeCount: number;
   commentCount: number;
   createdAt: string;
+  userReaction?: ReactionType | null;
 }
 
 export interface ApiComment {
