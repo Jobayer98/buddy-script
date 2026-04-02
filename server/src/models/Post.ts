@@ -4,6 +4,7 @@ export interface IPost extends Document {
   userId: Types.ObjectId;
   content: string;
   imageUrl?: string;
+  imagePublicId?: string;
   visibility: "public" | "private";
   likeCount: number;
   commentCount: number;
@@ -15,6 +16,7 @@ const postSchema = new Schema<IPost>(
     userId:       { type: Schema.Types.ObjectId, ref: "User", required: true },
     content:      { type: String, required: true, trim: true },
     imageUrl:     { type: String, default: null },
+    imagePublicId: { type: String, default: null },
     visibility:   { type: String, enum: ["public", "private"], default: "public" },
     likeCount:    { type: Number, default: 0 },
     commentCount: { type: Number, default: 0 },
