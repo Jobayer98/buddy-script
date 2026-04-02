@@ -16,7 +16,12 @@ interface Props {
   onReplyAdded: (reply: ApiComment) => void;
 }
 
-export default function CommentItem({ comment, replies, postId, onReplyAdded }: Props) {
+export default function CommentItem({
+  comment,
+  replies,
+  postId,
+  onReplyAdded,
+}: Props) {
   const { accessToken } = useAuth();
   const api = createApi(accessToken);
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -46,8 +51,14 @@ export default function CommentItem({ comment, replies, postId, onReplyAdded }: 
     <div className="mb-4">
       <div className="flex gap-3">
         <a href="#" className="shrink-0">
-          <div className="w-9 h-9 rounded-full overflow-hidden bg-primary/20">
-            <Image src="/images/txt_img.png" alt={authorName} width={36} height={36} className="object-cover w-full h-full" />
+          <div className="w-6 h-6 rounded-full overflow-hidden bg-primary/20">
+            <Image
+              src="/images/txt_img.png"
+              alt={authorName}
+              width={36}
+              height={36}
+              className="object-cover w-full h-full"
+            />
           </div>
         </a>
 
@@ -55,9 +66,13 @@ export default function CommentItem({ comment, replies, postId, onReplyAdded }: 
           {/* Comment bubble */}
           <div className="bg-muted/40 rounded-[6px] px-3 py-2 inline-block max-w-full">
             <a href="#">
-              <h4 className="text-[13px] font-semibold text-foreground leading-tight mb-0.5">{authorName}</h4>
+              <h4 className="text-[13px] font-semibold text-foreground leading-tight mb-0.5">
+                {authorName}
+              </h4>
             </a>
-            <p className="text-[13px] text-muted-foreground leading-snug">{comment.content}</p>
+            <p className="text-[13px] text-muted-foreground leading-snug">
+              {comment.content}
+            </p>
           </div>
 
           {/* Reaction badges */}
@@ -70,7 +85,9 @@ export default function CommentItem({ comment, replies, postId, onReplyAdded }: 
                 <HeartIcon />
               </span>
             </div>
-            <span className="text-[12px] text-muted-foreground">{comment.likeCount}</span>
+            <span className="text-[12px] text-muted-foreground">
+              {comment.likeCount}
+            </span>
           </div>
 
           {/* Like / Reply / Share / time */}
@@ -88,14 +105,22 @@ export default function CommentItem({ comment, replies, postId, onReplyAdded }: 
               Share
             </button>
             <span className="text-muted-foreground text-[12px]">·</span>
-            <span className="text-[12px] text-muted-foreground">{timeAgo(comment.createdAt)}</span>
+            <span className="text-[12px] text-muted-foreground">
+              {timeAgo(comment.createdAt)}
+            </span>
           </div>
 
           {/* Reply input */}
           {showReplyInput && (
             <div className="flex gap-2 mt-2">
-              <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-primary/20">
-                <Image src="/images/comment_img.png" alt="" width={28} height={28} className="object-cover w-full h-full" />
+              <div className="shrink-0 w-6 h-6 rounded-full overflow-hidden bg-primary/20">
+                <Image
+                  src="/images/comment_img.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="object-cover w-full h-full"
+                />
               </div>
               <div className="flex-1 flex gap-2">
                 <input
@@ -123,19 +148,34 @@ export default function CommentItem({ comment, replies, postId, onReplyAdded }: 
               {replies.map((reply) => (
                 <div key={reply._id} className="flex gap-2">
                   <div className="shrink-0 w-7 h-7 rounded-full overflow-hidden bg-primary/20">
-                    <Image src="/images/txt_img.png" alt="" width={28} height={28} className="object-cover w-full h-full" />
+                    <Image
+                      src="/images/txt_img.png"
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="object-cover w-full h-full"
+                    />
                   </div>
                   <div className="flex-1">
                     <div className="bg-muted/40 rounded-[6px] px-3 py-2 inline-block max-w-full">
                       <p className="text-[12px] font-semibold text-foreground leading-tight mb-0.5">
                         {reply.userId.firstName} {reply.userId.lastName}
                       </p>
-                      <p className="text-[12px] text-muted-foreground">{reply.content}</p>
+                      <p className="text-[12px] text-muted-foreground">
+                        {reply.content}
+                      </p>
                     </div>
                     <div className="flex items-center gap-1 mt-1 ml-1">
-                      <LikeButton initialCount={reply.likeCount} commentId={reply._id} />
-                      <span className="text-muted-foreground text-[12px]">·</span>
-                      <span className="text-[12px] text-muted-foreground">{timeAgo(reply.createdAt)}</span>
+                      <LikeButton
+                        initialCount={reply.likeCount}
+                        commentId={reply._id}
+                      />
+                      <span className="text-muted-foreground text-[12px]">
+                        ·
+                      </span>
+                      <span className="text-[12px] text-muted-foreground">
+                        {timeAgo(reply.createdAt)}
+                      </span>
                     </div>
                   </div>
                 </div>

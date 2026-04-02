@@ -22,7 +22,8 @@ export default function CommentSection({ postId, onCommentAdded }: Props) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    api.get<ApiComment[]>(`/comments?postId=${postId}`)
+    api
+      .get<ApiComment[]>(`/comments?postId=${postId}`)
       .then(setComments)
       .finally(() => setLoading(false));
   }, [postId]);
@@ -31,7 +32,10 @@ export default function CommentSection({ postId, onCommentAdded }: Props) {
     if (!text.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const comment = await api.post<ApiComment>("/comments", { postId, content: text.trim() });
+      const comment = await api.post<ApiComment>("/comments", {
+        postId,
+        content: text.trim(),
+      });
       setComments((prev) => [...prev, comment]);
       setText("");
       onCommentAdded?.();
@@ -50,46 +54,55 @@ export default function CommentSection({ postId, onCommentAdded }: Props) {
   return (
     <div className="px-6 pt-4 pb-2 border-t border-border mt-1">
       {/* Comment input */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className="shrink-0 w-9 h-9 rounded-full overflow-hidden bg-primary/20">
-          <Image src="/images/comment_img.png" alt="avatar" width={36} height={36} className="object-cover w-full h-full" />
-        </div>
-        <div className="flex-1 flex flex-col gap-1">
-          <textarea
-            className="w-full bg-muted/40 rounded-[6px] px-3 py-2 text-sm outline-none border border-border focus:border-primary resize-none min-h-[40px]"
-            placeholder="Write a comment"
-            value={text}
-            rows={1}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), submitComment())}
+      <div className="flex items-center gap-3 mb-4 bg-muted/30 rounded-full px-4 py-2.5">
+        <div className="shrink-0 w-6 h-6 rounded-full overflow-hidden bg-primary/20">
+          <Image
+            src="/images/comment_img.png"
+            alt="avatar"
+            width={30}
+            height={30}
+            className="object-cover w-full h-full"
           />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button type="button" className="text-muted-foreground hover:text-primary transition-colors">
-                <MicIcon />
-              </button>
-              <button type="button" className="text-muted-foreground hover:text-primary transition-colors">
-                <ImageAttachIcon />
-              </button>
-            </div>
-            <button
-              onClick={submitComment}
-              disabled={submitting || !text.trim()}
-              className="text-xs text-primary font-medium hover:underline disabled:opacity-40 transition-opacity"
-            >
-              {submitting ? "Posting..." : "Post"}
-            </button>
-          </div>
+        </div>
+        <input
+          type="text"
+          className="flex-1 bg-transparent text-sm outline-none border-none placeholder:text-muted-foreground"
+          placeholder="Write a comment"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) =>
+            e.key === "Enter" &&
+            !e.shiftKey &&
+            (e.preventDefault(), submitComment())
+          }
+        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            <MicIcon />
+          </button>
+          <button
+            type="button"
+            className="text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ImageAttachIcon />
+          </button>
         </div>
       </div>
 
       {/* Comments list */}
       {loading ? (
-        <p className="text-sm text-muted-foreground animate-pulse py-2">Loading comments...</p>
+        <p className="text-sm text-muted-foreground animate-pulse py-2">
+          Loading comments...
+        </p>
       ) : (
         <div className="space-y-1">
           {topLevel.length === 0 && (
-            <p className="text-sm text-muted-foreground py-2">No comments yet. Be the first!</p>
+            <p className="text-sm text-muted-foreground py-2">
+              No comments yet. Be the first!
+            </p>
           )}
           {topLevel.map((comment) => (
             <CommentItem
