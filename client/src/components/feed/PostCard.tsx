@@ -14,6 +14,8 @@ import {
 } from "../layout/ReferenceIcons";
 import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
+import ReactionButton from "./ReactionButton";
+import ReactionDisplay from "./ReactionDisplay";
 import {
   Dialog,
   DialogContent,
@@ -304,32 +306,7 @@ export default function PostCard({ post, onDeleted }: Props) {
 
       {/* Reactions count row */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center -space-x-1">
-            <Image
-              src="/images/react_img1.png"
-              alt=""
-              width={22}
-              height={22}
-              className="rounded-full border border-card"
-            />
-            <Image
-              src="/images/react_img2.png"
-              alt=""
-              width={22}
-              height={22}
-              className="rounded-full border border-card"
-            />
-            <Image
-              src="/images/react_img3.png"
-              alt=""
-              width={22}
-              height={22}
-              className="rounded-full border border-card hidden sm:block"
-            />
-          </div>
-          <LikeButton initialCount={post.likeCount} postId={post._id} />
-        </div>
+        <ReactionDisplay postId={post._id} totalCount={post.likeCount} />
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowComments((v) => !v)}
@@ -346,9 +323,11 @@ export default function PostCard({ post, onDeleted }: Props) {
 
       {/* Action bar */}
       <div className="flex items-center px-6 pt-1">
-        <button className="flex-1 flex items-center justify-center gap-2 h-10 text-[14px] font-normal text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-[6px] transition-colors">
-          <HahaIcon /> Haha
-        </button>
+        <ReactionButton
+          initialCount={post.likeCount}
+          postId={post._id}
+          initialReaction={post.userReaction}
+        />
         <button
           onClick={() => setShowComments((v) => !v)}
           className="flex-1 flex items-center justify-center gap-2 h-10 text-[14px] font-normal text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-[6px] transition-colors"
