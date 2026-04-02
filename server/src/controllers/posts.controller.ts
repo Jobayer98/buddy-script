@@ -5,6 +5,7 @@ import Post from "../models/Post";
 import Comment from "../models/Comment";
 import Like from "../models/Like";
 import { AuthRequest } from "../middleware/auth";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/uploadToCloudinary";
 
 export const getFeed = async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
@@ -67,13 +68,28 @@ export const createPost = async (req: AuthRequest, res: Response): Promise<void>
   }
 
   const { content, visibility = "public" } = req.body;
-  const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+  let imageUrl: string | undefined;
+  let imagePublicId: string | undefined;
+
+  // Upload image to Cloudinary if provided
+  if (req.file) {
+    try {
+      const uploadResult = await uploadToCloudinary(req.file, "social-media/posts");
+      imageUrl = uploadResult.url;
+      imagePublicId = uploadResult.publicId;
+    } catch (error) {
+      res.status(500).json({ message: "Failed to upload image" });
+      return;
+    }
+  }
 
   const post = await Post.create({
     userId: req.user!.id,
     content,
     visibility,
     ...(imageUrl && { imageUrl }),
+    ...(imagePublicId && { imagePublicId }),
   });
 
   await post.populate("userId", "firstName lastName");
@@ -127,6 +143,11 @@ export const deletePost = async (req: AuthRequest, res: Response): Promise<void>
   if (post.userId.toString() !== req.user!.id) {
     res.status(403).json({ message: "Forbidden" });
     return;
+  }
+
+  // Delete image from Cloudinary if exists
+  if (post.imagePublicId) {
+    await deleteFromCloudinary(post.imagePublicId);
   }
 
   await Promise.all([
