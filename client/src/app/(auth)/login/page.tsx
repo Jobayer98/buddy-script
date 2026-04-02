@@ -2,19 +2,49 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { createApi } from "@/lib/api";
+import { AuthUser } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
+
+type LoginResponse = { accessToken: string; user: AuthUser };
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { setAuth } = useAuth();
+  const api = createApi(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const { accessToken, user } = await api.post<LoginResponse>(
+        "/auth/login",
+        { email, password },
+      );
+      setAuth(accessToken, user);
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center py-20 px-4 bg-background overflow-hidden isolate">
-      {/* Decorative Shapes - Using positive Z-index within an isolated container to ensure visibility over background */}
+      {/* Decorative Shapes */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-0">
           <Image
@@ -48,7 +78,7 @@ export default function LoginPage() {
             className="hidden dark:block opacity-50"
           />
         </div>
-        <div className="absolute bottom-0 right-[327px]">
+        <div className="absolute bottom-0 right-81.75">
           <Image
             src="/images/shape3.svg"
             alt=""
@@ -69,16 +99,14 @@ export default function LoginPage() {
       <div className="container max-w-6xl mx-auto relative z-10">
         <div className="flex flex-wrap items-center -mx-4">
           <div className="w-full lg:w-2/3 px-4 hidden lg:block">
-            <div className="relative">
-              <Image
-                src="/images/login.png"
-                alt="Login Illustration"
-                width={633}
-                height={500}
-                className="max-w-full h-auto mx-auto"
-                priority
-              />
-            </div>
+            <Image
+              src="/images/login.png"
+              alt="Login Illustration"
+              width={633}
+              height={500}
+              className="max-w-full h-auto mx-auto"
+              priority
+            />
           </div>
 
           <div className="w-full lg:w-1/3 px-4">
@@ -120,10 +148,13 @@ export default function LoginPage() {
                   </span>
                 </div>
 
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => e.preventDefault()}
-                >
+                {error && (
+                  <p className="text-sm text-destructive text-center mb-4 bg-destructive/10 rounded-md py-2 px-3">
+                    {error}
+                  </p>
+                )}
+
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">
                       Email
@@ -134,6 +165,7 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-12 bg-muted/50 border-border"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
@@ -146,6 +178,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="h-12 bg-muted/50 border-border"
+                      required
                     />
                   </div>
 
@@ -154,7 +187,7 @@ export default function LoginPage() {
                       <Checkbox id="remember" className="border-primary" />
                       <label
                         htmlFor="remember"
-                        className="text-sm font-normal text-muted-foreground leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-normal text-muted-foreground leading-none"
                       >
                         Remember me
                       </label>
@@ -170,8 +203,9 @@ export default function LoginPage() {
                   <Button
                     className="w-full h-12 text-base font-medium mt-10"
                     type="submit"
+                    disabled={loading}
                   >
-                    Login now
+                    {loading ? "Logging in..." : "Login now"}
                   </Button>
                 </form>
 
