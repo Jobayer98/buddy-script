@@ -1,44 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
-import { currentUser } from "@/lib/demo-data";
+import { ApiPost } from "@/lib/types";
+import { createApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import {
+  WriteIcon,
+  PostSendIcon,
   PhotoIcon,
   VideoIcon,
   EventIcon,
   ArticleIcon,
-  PostSendIcon,
-  WriteIcon,
 } from "../layout/ReferenceIcons";
 
-export default function CreatePost() {
+interface Props {
+  onPostCreated: (post: ApiPost) => void;
+}
+
+export default function CreatePost({ onPostCreated }: Props) {
+  const { accessToken } = useAuth();
+  const api = createApi(accessToken);
   const [content, setContent] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async () => {
+    if (!content.trim() || loading) return;
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append("content", content.trim());
+      form.append("visibility", visibility);
+      if (image) form.append("image", image);
+      const post = await api.post<ApiPost>("/posts", form);
+      onPostCreated(post);
+      setContent("");
+      setImage(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-card rounded-[6px] pt-6 pr-6 pb-6 pl-6 mb-4">
-      {/* Top: avatar + textarea */}
-      <div className="flex items-start">
-        <div className="shrink-0 cursor-pointer">
-          <Image
-            src={currentUser.avatar}
-            alt="Profile"
-            width={40}
-            height={40}
-            className="rounded-full object-cover max-w-[40px] p-[1px]"
-          />
+      {/* Textarea row */}
+      <div className="flex items-start gap-3">
+        <div className="shrink-0 w-10 h-10 rounded-full overflow-hidden bg-primary/20 flex items-center justify-center">
+          <Image src="/images/txt_img.png" alt="avatar" width={40} height={40} className="object-cover rounded-full" />
         </div>
 
-        {/* Floating label textarea */}
-        <div className="relative flex-1 ml-3">
+        <div className="relative flex-1">
           <textarea
-            className="w-full h-[88px] border-none outline-none resize-none bg-transparent text-foreground text-sm leading-relaxed pt-2 peer"
+            id="post-textarea"
+            className="w-full min-h-[88px] border-none outline-none resize-none bg-transparent text-foreground text-sm leading-relaxed pt-2 peer"
             placeholder=""
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            id="post-textarea"
           />
-          {/* Floating label — hides when typing */}
           {!content && (
             <label
               htmlFor="post-textarea"
@@ -51,40 +72,83 @@ export default function CreatePost() {
         </div>
       </div>
 
-      {/* Bottom action bar */}
-      <div
-        className="flex items-center justify-between mt-[10px] px-[15px] rounded-b-[6px] h-16"
-        style={{ background: "rgba(24, 144, 255, 0.05)" }}
-      >
-        {/* Action buttons */}
-        <div className="flex items-center">
-          {[
-            { icon: PhotoIcon, label: "Photo" },
-            { icon: VideoIcon, label: "Video" },
-            { icon: EventIcon, label: "Event" },
-            { icon: ArticleIcon, label: "Article" },
-          ].map(({ icon: Icon, label }) => (
-            <button
-              key={label}
-              type="button"
-              className="flex items-center px-[10px] text-base font-normal text-[#666] transition-colors duration-200 hover:text-primary group"
-            >
-              <span className="mr-2 [&_path]:transition-colors [&_path]:duration-200 group-hover:[&_path]:fill-primary">
-                <Icon />
-              </span>
-              {label}
-            </button>
-          ))}
+      {image && (
+        <div className="mt-2 ml-[52px] flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="truncate max-w-[200px]">{image.name}</span>
+          <button onClick={() => setImage(null)} className="text-destructive hover:underline text-xs shrink-0">
+            Remove
+          </button>
+        </div>
+      )}
+
+      {/* Desktop toolbar */}
+      <div className="hidden md:flex items-center justify-between mt-3 px-4 rounded-b-[6px] h-16" style={{ background: "rgba(24,144,255,0.05)" }}>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-normal text-[#666] hover:text-primary transition-colors rounded"
+          >
+            <PhotoIcon />
+            Photo
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => setImage(e.target.files?.[0] ?? null)} />
+
+          <button type="button" className="flex items-center gap-1.5 px-3 py-2 text-sm font-normal text-[#666] hover:text-primary transition-colors rounded">
+            <VideoIcon />
+            Video
+          </button>
+
+          <button type="button" className="flex items-center gap-1.5 px-3 py-2 text-sm font-normal text-[#666] hover:text-primary transition-colors rounded">
+            <EventIcon />
+            Event
+          </button>
+
+          <button type="button" className="flex items-center gap-1.5 px-3 py-2 text-sm font-normal text-[#666] hover:text-primary transition-colors rounded">
+            <ArticleIcon />
+            Article
+          </button>
         </div>
 
-        {/* Post button */}
         <button
           type="button"
-          className="flex items-center justify-center gap-2 bg-primary hover:bg-[#377DFF] transition-colors duration-200 text-white text-base font-medium rounded-[6px] px-[22px] py-3 border border-transparent"
+          onClick={handleSubmit}
+          disabled={loading || !content.trim()}
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 disabled:opacity-50 transition-colors text-white text-sm font-medium rounded-[6px] px-5 py-2.5"
         >
           <PostSendIcon />
-          <span>Post</span>
+          <span>{loading ? "Posting..." : "Post"}</span>
         </button>
+      </div>
+
+      {/* Mobile toolbar */}
+      <div className="md:hidden mt-3">
+        <div className="flex items-center justify-between px-2 py-2 rounded-b-[6px]" style={{ background: "rgba(24,144,255,0.05)" }}>
+          <div className="flex items-center gap-1">
+            <button type="button" onClick={() => fileRef.current?.click()} className="p-2 text-[#666] hover:text-primary transition-colors">
+              <PhotoIcon />
+            </button>
+            <button type="button" className="p-2 text-[#666] hover:text-primary transition-colors">
+              <VideoIcon />
+            </button>
+            <button type="button" className="p-2 text-[#666] hover:text-primary transition-colors">
+              <EventIcon />
+            </button>
+            <button type="button" className="p-2 text-[#666] hover:text-primary transition-colors">
+              <ArticleIcon />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading || !content.trim()}
+            className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 disabled:opacity-50 transition-colors text-white text-sm font-medium rounded-[6px] px-4 py-2"
+          >
+            <PostSendIcon />
+            <span>{loading ? "Posting..." : "Post"}</span>
+          </button>
+        </div>
       </div>
     </div>
   );
