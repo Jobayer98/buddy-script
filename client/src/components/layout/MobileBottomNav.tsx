@@ -30,7 +30,7 @@ export default function MobileBottomNav() {
                 }`}
               >
                 <item.icon className={`h-6 w-6 ${isActive ? "fill-current" : ""}`} />
-                {item.count > 0 && (
+                {(item.count ?? 0) > 0 && (
                   <span className="absolute top-2 right-2 w-4.5 h-4.5 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-card font-bold">
                     {item.count}
                   </span>

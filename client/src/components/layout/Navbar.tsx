@@ -25,13 +25,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, clearAuth } = useAuth();
+
+  const handleLogout = () => {
+    clearAuth();
+    router.push("/login");
+  };
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -243,7 +251,7 @@ export default function Navbar() {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
             >
               <p className="text-base font-normal text-foreground leading-6">
-                Dylan Field
+                {user ? `${user.firstName} ${user.lastName}` : "Guest"}
               </p>
               <button className="border-0 bg-transparent ml-2 mt-[-3px] outline-none">
                 <ChevronDownIcon className="h-[6px] w-[10px] text-foreground" />
@@ -266,7 +274,7 @@ export default function Navbar() {
                   </div>
                   <div>
                     <h4 className="font-bold text-base text-foreground leading-tight mb-1">
-                      Dylan Field
+                      {user ? `${user.firstName} ${user.lastName}` : "Guest"}
                     </h4>
                     <Link href="/profile" className="text-sm text-[#377DFF]">
                       View Profile
@@ -334,9 +342,9 @@ export default function Navbar() {
                     </Link>
                   </li>
                   <li>
-                    <Link
-                      href="#"
-                      className="flex items-center justify-between text-base font-medium text-muted-foreground hover:text-primary transition-colors"
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center justify-between w-full text-base font-medium text-muted-foreground hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span className="bg-[#ebf2ff] p-[11px] rounded-full inline-flex">
@@ -344,22 +352,10 @@ export default function Navbar() {
                         </span>
                         Log Out
                       </div>
-                      <button className="border-0 bg-transparent outline-none">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="6"
-                          height="10"
-                          fill="none"
-                          viewBox="0 0 6 10"
-                        >
-                          <path
-                            fill="#112032"
-                            d="M5 5l.354.354L5.707 5l-.353-.354L5 5zM1.354 9.354l4-4-.708-.708-4 4 .708.708zm4-4.708l-4-4-.708.708 4 4 .708-.708z"
-                            opacity=".5"
-                          />
-                        </svg>
-                      </button>
-                    </Link>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="6" height="10" fill="none" viewBox="0 0 6 10">
+                        <path fill="#112032" d="M5 5l.354.354L5.707 5l-.353-.354L5 5zM1.354 9.354l4-4-.708-.708-4 4 .708.708zm4-4.708l-4-4-.708.708 4 4 .708-.708z" opacity=".5" />
+                      </svg>
+                    </button>
                   </li>
                 </ul>
               </div>
