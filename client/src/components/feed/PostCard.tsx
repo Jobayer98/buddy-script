@@ -93,7 +93,8 @@ export default function PostCard({ post, onDeleted }: Props) {
   };
 
   const authorName = `${post.userId.firstName} ${post.userId.lastName}`;
-  const imageUrl = post.imageUrl ? `${BASE_URL}${post.imageUrl}` : null;
+  // Cloudinary URLs are already full URLs, no need to prepend BASE_URL
+  const imageUrl = post.imageUrl || null;
 
   return (
     <div className="bg-card rounded-[6px] pt-6 pb-6 mb-4">
