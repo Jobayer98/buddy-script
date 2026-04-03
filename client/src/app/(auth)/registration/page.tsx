@@ -12,7 +12,7 @@ import { createApi } from "@/lib/api";
 import { AuthUser } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-type RegisterResponse = { accessToken: string; user: AuthUser };
+type RegisterResponse = { accessToken: string; expiresIn: number; user: AuthUser };
 
 export default function RegistrationPage() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function RegistrationPage() {
 
     setLoading(true);
     try {
-      const { accessToken, user } = await api.post<RegisterResponse>(
+      const { accessToken, expiresIn, user } = await api.post<RegisterResponse>(
         "/auth/register",
         {
           firstName: formData.firstName,
@@ -51,7 +51,7 @@ export default function RegistrationPage() {
           password: formData.password,
         },
       );
-      setAuth(accessToken, user);
+      setAuth(accessToken, user, expiresIn);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");

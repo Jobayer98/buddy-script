@@ -12,7 +12,7 @@ import { createApi } from "@/lib/api";
 import { AuthUser } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 
-type LoginResponse = { accessToken: string; user: AuthUser };
+type LoginResponse = { accessToken: string; expiresIn: number; user: AuthUser };
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,11 +29,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { accessToken, user } = await api.post<LoginResponse>(
+      const { accessToken, expiresIn, user } = await api.post<LoginResponse>(
         "/auth/login",
         { email, password },
       );
-      setAuth(accessToken, user);
+      setAuth(accessToken, user, expiresIn);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
