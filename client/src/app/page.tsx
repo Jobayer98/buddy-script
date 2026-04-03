@@ -48,6 +48,7 @@ export default function Home() {
     };
 
     fetchInitialPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken]);
 
   // Load more posts
@@ -149,7 +150,7 @@ export default function Home() {
               )}
               {!hasMore && posts.length > 0 && (
                 <p className="text-center text-sm text-muted-foreground">
-                  You've reached the end
+                  You&apos;ve reached the end
                 </p>
               )}
             </div>
