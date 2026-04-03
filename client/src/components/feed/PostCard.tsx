@@ -12,7 +12,6 @@ import {
   CommentIcon,
   ShareIcon,
 } from "../layout/ReferenceIcons";
-import LikeButton from "./LikeButton";
 import CommentSection from "./CommentSection";
 import ReactionButton from "./ReactionButton";
 import ReactionDisplay from "./ReactionDisplay";
@@ -39,6 +38,7 @@ export default function PostCard({ post, onDeleted }: Props) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentCount, setCommentCount] = useState(post.commentCount);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
   const [visibility, setVisibility] = useState(post.visibility);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
@@ -103,7 +103,7 @@ export default function PostCard({ post, onDeleted }: Props) {
         <div className="flex items-center gap-4 cursor-pointer">
           <div className="shrink-0 w-11 h-11 rounded-full bg-primary/20 overflow-hidden">
             <Image
-              src="/images/post_img.png"
+              src="/images/chat2_img.png"
               alt={authorName}
               width={44}
               height={44}
@@ -307,7 +307,7 @@ export default function PostCard({ post, onDeleted }: Props) {
 
       {/* Reactions count row */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
-        <ReactionDisplay postId={post._id} totalCount={post.likeCount} />
+        <ReactionDisplay postId={post._id} totalCount={likeCount} />
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowComments((v) => !v)}
@@ -325,9 +325,10 @@ export default function PostCard({ post, onDeleted }: Props) {
       {/* Action bar */}
       <div className="flex items-center px-6 pt-1">
         <ReactionButton
-          initialCount={post.likeCount}
+          initialCount={likeCount}
           postId={post._id}
           initialReaction={post.userReaction}
+          onCountChange={setLikeCount}
         />
         <button
           onClick={() => setShowComments((v) => !v)}
