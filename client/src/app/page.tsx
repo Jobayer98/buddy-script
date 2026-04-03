@@ -99,6 +99,8 @@ export default function Home() {
   const handlePostDeleted = (id: string) =>
     setPosts((prev) => prev.filter((p) => p._id !== id));
 
+  if (!accessToken) return null;
+
   return (
     <AppLayout>
       <div className="space-y-6">

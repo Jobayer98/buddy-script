@@ -11,7 +11,7 @@ import {
 } from "react";
 import { AuthUser } from "@/lib/auth";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = typeof window === "undefined" ? process.env.NEXT_PUBLIC_API_URL : "/api";
 const REFRESH_BEFORE_MS = 30 * 1000;
 
 interface AuthState {
