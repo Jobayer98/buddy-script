@@ -52,14 +52,14 @@ export default function ReactionDisplay({
 
   if (totalCount === 0) return null;
 
-  // Get first 5 users for display
-  const displayUsers = allUsers.slice(0, 5);
-  const remainingCount = totalCount - 5;
+  // Get first 3 users for image stack
+  const displayUsers = allUsers.slice(0, 3);
+  const remainingCount = totalCount - displayUsers.length;
 
   return (
     <div className="flex items-center gap-2">
       {/* Stacked user profile images */}
-      <div className="flex items-center -space-x-2">
+      <div className="flex items-center -space-x-4">
         {displayUsers.map(
           (
             {
@@ -85,16 +85,11 @@ export default function ReactionDisplay({
           ),
         )}
 
-        {/* Show +X if more than 5 reactions */}
+        {/* Show +X alongside image stack when there are more */}
         {remainingCount > 0 && (
-          <div
-            className="w-8 h-8 rounded-full bg-primary border-2 border-card flex items-center justify-center"
-            style={{ zIndex: 0 }}
-          >
-            <span className="text-xs font-semibold text-white">
-              {remainingCount}+
-            </span>
-          </div>
+          <span className=" text-sm font-bold text-white bg-primary rounded-full w-8 h-8 z-20 flex items-center justify-center border-2 border-card">
+            {remainingCount}+
+          </span>
         )}
       </div>
     </div>
