@@ -11,6 +11,7 @@ interface Props {
   postId?: string;
   commentId?: string;
   initialReaction?: ReactionType | null;
+  onCountChange?: (newCount: number) => void;
 }
 
 const reactionEmojis: Record<ReactionType, string> = {
@@ -27,6 +28,7 @@ export default function ReactionButton({
   postId,
   commentId,
   initialReaction,
+  onCountChange,
 }: Props) {
   const { accessToken } = useAuth();
   const api = createApi(accessToken);
@@ -88,6 +90,7 @@ export default function ReactionButton({
       }>("/likes/toggle", body);
       setReaction(res.reactionType);
       setCount(res.likeCount);
+      onCountChange?.(res.likeCount);
     } catch {
       // Revert on failure
       setReaction(oldReaction);
