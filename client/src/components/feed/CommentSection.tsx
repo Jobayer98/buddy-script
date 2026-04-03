@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { ApiComment } from "@/lib/types";
 import { createApi } from "@/lib/api";
@@ -15,18 +15,23 @@ interface Props {
 
 export default function CommentSection({ postId, onCommentAdded }: Props) {
   const { accessToken } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
   const [comments, setComments] = useState<ApiComment[]>([]);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    const controller = new AbortController();
     api
       .get<ApiComment[]>(`/comments?postId=${postId}`)
       .then(setComments)
+      .catch((err) => {
+        if (err.name !== "AbortError") setLoading(false);
+      })
       .finally(() => setLoading(false));
-  }, [postId]);
+    return () => controller.abort();
+  }, [postId, api]);
 
   const submitComment = async () => {
     if (!text.trim() || submitting) return;
@@ -48,8 +53,11 @@ export default function CommentSection({ postId, onCommentAdded }: Props) {
     setComments((prev) => [...prev, reply]);
   };
 
-  const topLevel = comments.filter((c) => c.parentId === null);
-  const repliesFor = (id: string) => comments.filter((c) => c.parentId === id);
+  const topLevel = useMemo(() => comments.filter((c) => c.parentId === null), [comments]);
+  const repliesFor = useMemo(
+    () => (id: string) => comments.filter((c) => c.parentId === id),
+    [comments],
+  );
 
   return (
     <div className="px-6 pt-4 pb-2 border-t border-border mt-1">

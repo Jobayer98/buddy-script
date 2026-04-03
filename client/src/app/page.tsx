@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import AppLayout from "@/components/layout/AppLayout";
 import StoryList from "@/components/feed/StoryList";
 import CreatePost from "@/components/feed/CreatePost";
@@ -22,7 +22,7 @@ interface FeedResponse {
 
 export default function Home() {
   const { accessToken } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
 
   const [posts, setPosts] = useState<ApiPost[]>([]);
   const [loading, setLoading] = useState(true);

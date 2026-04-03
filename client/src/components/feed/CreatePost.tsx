@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Image from "next/image";
 import { ApiPost } from "@/lib/types";
 import { createApi } from "@/lib/api";
@@ -20,7 +20,7 @@ interface Props {
 
 export default function CreatePost({ onPostCreated }: Props) {
   const { accessToken } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
   const [content, setContent] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
   const [image, setImage] = useState<File | null>(null);

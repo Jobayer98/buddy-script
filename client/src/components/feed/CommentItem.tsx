@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import { ApiComment } from "@/lib/types";
 import { createApi } from "@/lib/api";
@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { timeAgo } from "@/lib/utils";
 import { ThumbUpIcon, HeartIcon } from "../layout/ReferenceIcons";
 import LikeButton from "./LikeButton";
+import { useMemo } from "react";
 
 interface Props {
   comment: ApiComment;
@@ -23,7 +24,7 @@ export default function CommentItem({
   onReplyAdded,
 }: Props) {
   const { accessToken } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [submitting, setSubmitting] = useState(false);

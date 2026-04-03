@@ -25,7 +25,11 @@ const setRefreshCookie = (res: Response, token: string) => {
 };
 
 const clearRefreshCookie = (res: Response) => {
-  res.clearCookie("refreshToken");
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
 };
 
 const formatUser = (user: InstanceType<typeof User>) => ({

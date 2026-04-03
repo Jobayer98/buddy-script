@@ -51,16 +51,18 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
-// Auth routes with stricter rate limit: 5 requests per 10 minutes
-app.use(
-  "/auth",
-  rateLimit({
-    windowMs: 10 * 60 * 1000,
-    max: 5,
-    skipSuccessfulRequests: true,
-  }),
-  authRouter,
-);
+const authStrictLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+});
+
+// Apply strict limiter only to login/register (brute-force targets)
+// /auth/refresh and /auth/logout are excluded — they require a valid httpOnly
+// cookie and are not brute-forceable via credential stuffing
+app.use("/auth/login", authStrictLimiter);
+app.use("/auth/register", authStrictLimiter);
+app.use("/auth", authRouter);
 app.use("/posts", postsRouter);
 app.use("/comments", commentsRouter);
 app.use("/likes", likesRouter);

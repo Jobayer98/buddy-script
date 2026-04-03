@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ApiPost } from "@/lib/types";
 import { createApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -33,7 +33,7 @@ interface Props {
 
 export default function PostCard({ post, onDeleted }: Props) {
   const { accessToken, user } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
   const isOwner = user?.id === post.userId._id;
   const [showDropdown, setShowDropdown] = useState(false);
   const [showComments, setShowComments] = useState(false);

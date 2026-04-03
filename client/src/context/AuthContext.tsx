@@ -48,11 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => {});
   }, []);
 
-  const doRefresh = useCallback(async () => {
+  const doRefresh = useCallback(async (signal?: AbortSignal) => {
     try {
       const res = await fetch(`${BASE_URL}/auth/refresh`, {
         method: "POST",
         credentials: "include",
+        signal,
       });
       if (!res.ok) {
         setAuthState({ accessToken: null, user: null, ready: true });
@@ -64,10 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearTimer();
 
       timerRef.current = setTimeout(
-        doRefresh,
+        () => doRefresh(),
         expiresIn * 1000 - REFRESH_BEFORE_MS,
       );
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "AbortError") return;
       setAuthState({ accessToken: null, user: null, ready: true });
     }
   }, []);
@@ -86,8 +88,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Restore session on mount
   useEffect(() => {
-    doRefresh();
-    return clearTimer;
+    const controller = new AbortController();
+    doRefresh(controller.signal);
+    return () => {
+      controller.abort();
+      clearTimer();
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

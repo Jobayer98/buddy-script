@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { ReactionType } from "@/lib/types";
@@ -31,7 +31,7 @@ export default function ReactionButton({
   onCountChange,
 }: Props) {
   const { accessToken } = useAuth();
-  const api = createApi(accessToken);
+  const api = useMemo(() => createApi(accessToken), [accessToken]);
   const [reaction, setReaction] = useState<ReactionType | null>(
     initialReaction || null,
   );
