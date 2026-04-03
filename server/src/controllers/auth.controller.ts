@@ -18,7 +18,7 @@ const signRefresh = (id: string) =>
 const setRefreshCookie = (res: Response, token: string) => {
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: REFRESH_EXPIRY_MS,
   });
@@ -27,7 +27,7 @@ const setRefreshCookie = (res: Response, token: string) => {
 const clearRefreshCookie = (res: Response) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     secure: process.env.NODE_ENV === "production",
   });
 };
