@@ -1,11 +1,18 @@
+/* eslint-disable react-hooks/immutability */
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { AuthUser } from "@/lib/auth";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const REFRESH_BEFORE_MS = 30 * 1000;
-const ACCESS_EXPIRY_MS = 5 * 60 * 1000;
 
 interface AuthState {
   accessToken: string | null;
@@ -14,14 +21,18 @@ interface AuthState {
 }
 
 interface AuthContextValue extends AuthState {
-  setAuth: (token: string, user: AuthUser) => void;
+  setAuth: (token: string, user: AuthUser, expiresIn: number) => void;
   clearAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [auth, setAuthState] = useState<AuthState>({ accessToken: null, user: null, ready: false });
+  const [auth, setAuthState] = useState<AuthState>({
+    accessToken: null,
+    user: null,
+    ready: false,
+  });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = () => {
@@ -31,7 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuth = useCallback(() => {
     clearTimer();
     setAuthState({ accessToken: null, user: null, ready: true });
-    fetch(`${BASE_URL}/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
+    fetch(`${BASE_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
   }, []);
 
   const doRefresh = useCallback(async () => {
@@ -44,20 +58,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuthState({ accessToken: null, user: null, ready: true });
         return;
       }
-      const { accessToken, user } = await res.json();
+      const { accessToken, expiresIn, user } = await res.json();
       setAuthState({ accessToken, user, ready: true });
+
       clearTimer();
-      timerRef.current = setTimeout(doRefresh, ACCESS_EXPIRY_MS - REFRESH_BEFORE_MS);
+
+      timerRef.current = setTimeout(
+        doRefresh,
+        expiresIn * 1000 - REFRESH_BEFORE_MS,
+      );
     } catch {
       setAuthState({ accessToken: null, user: null, ready: true });
     }
   }, []);
 
-  const setAuth = useCallback((token: string, user: AuthUser) => {
-    setAuthState({ accessToken: token, user, ready: true });
-    clearTimer();
-    timerRef.current = setTimeout(doRefresh, ACCESS_EXPIRY_MS - REFRESH_BEFORE_MS);
-  }, [doRefresh]);
+  const setAuth = useCallback(
+    (token: string, user: AuthUser, expiresIn: number) => {
+      setAuthState({ accessToken: token, user, ready: true });
+      clearTimer();
+      timerRef.current = setTimeout(
+        doRefresh,
+        expiresIn * 1000 - REFRESH_BEFORE_MS,
+      );
+    },
+    [doRefresh],
+  );
 
   // Restore session on mount
   useEffect(() => {
