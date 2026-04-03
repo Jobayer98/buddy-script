@@ -5,6 +5,7 @@ import { validationResult } from "express-validator";
 import User from "../models/User";
 
 const ACCESS_EXPIRY = "5m";
+const ACCESS_EXPIRY_SECONDS = 5 * 60;
 const REFRESH_EXPIRY = "7d";
 const REFRESH_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -17,7 +18,7 @@ const signRefresh = (id: string) =>
 const setRefreshCookie = (res: Response, token: string) => {
   res.cookie("refreshToken", token, {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     maxAge: REFRESH_EXPIRY_MS,
   });
@@ -56,7 +57,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   const refreshToken = signRefresh(user._id.toString());
 
   setRefreshCookie(res, refreshToken);
-  res.status(201).json({ accessToken, user: formatUser(user) });
+  res.status(201).json({ accessToken, expiresIn: ACCESS_EXPIRY_SECONDS, user: formatUser(user) });
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {
@@ -78,7 +79,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   const refreshToken = signRefresh(user._id.toString());
 
   setRefreshCookie(res, refreshToken);
-  res.json({ accessToken, user: formatUser(user) });
+  res.json({ accessToken, expiresIn: ACCESS_EXPIRY_SECONDS, user: formatUser(user) });
 };
 
 export const refresh = async (req: Request, res: Response): Promise<void> => {
@@ -102,7 +103,7 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
     const newRefreshToken = signRefresh(user._id.toString());
 
     setRefreshCookie(res, newRefreshToken);
-    res.json({ accessToken, user: formatUser(user) });
+    res.json({ accessToken, expiresIn: ACCESS_EXPIRY_SECONDS, user: formatUser(user) });
   } catch {
     res.status(401).json({ message: "Invalid or expired refresh token" });
   }
